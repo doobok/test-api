@@ -62,7 +62,6 @@ class UsersController extends Controller
             ]);
 
         } catch (Exception $exception) {
-            Log::info($exception);
             return $this->setFails([
                 'user_id' => ['User not found'],
             ])->return404();
@@ -129,7 +128,7 @@ class UsersController extends Controller
 
         // photo crop
         $file = $request->file('photo');
-        $uri = 'storage/photos/' . time().'_'.$file->getClientOriginalName();
+        $uri = 'storage/' . time().'_'.$file->getClientOriginalName();
 
         $source = Tinify::fromFile($file);
         $resized = $source->resize(array(
