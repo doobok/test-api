@@ -18,9 +18,5 @@ class UsersTableSeeder extends Seeder
     public function run()
     {
         User::factory(45)->create();
-
-        User::factory()->create([
-            'password' => Hash::make(Str::random(16)),
-        ]);
     }
 }

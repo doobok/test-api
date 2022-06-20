@@ -11,7 +11,7 @@ class TokenController extends Controller
     public function generateToken()
     {
         $token = Token::create([
-            'token' => Str::random(248) . '--'
+            'token' => Str::random(48) . '--'
         ]);
 
         return response()->json([

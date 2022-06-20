@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Http\Resources\UserResource;
 use App\Models\Token;
 use App\Models\User;
+use App\Rules\PositionCheck;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use MichaelThuren\TinifyLaravel\Facades\Tinify;
 
 class UsersController extends Controller
 {
@@ -70,26 +72,35 @@ class UsersController extends Controller
     public function paginationPage(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'count' => 'integer',
+            'count' => 'required|integer',
+            'offset' => 'integer',
             'page' => 'numeric|min:1',
         ]);
         if ($validator->fails()) {
             return $this->setFails($validator->messages())->return422();
         }
+        if (isset($request->offset)) {
+            $page = User::offset($request->offset)->limit($request->count)->get();
 
-        $page = User::paginate($request->count);
+            return $this->returnUsers([
+                'users' => UserResource::collection($page)
+            ]);
 
-        return $this->returnUsers([
-            'page' => $page->currentPage(),
-            'total_pages' => $page->lastPage(),
-            'total_users' => $page->total(),
-            'count' => $page->count(),
-            'links' => [
-                'next' => $page->nextPageUrl(),
-                'prev' => $page->previousPageUrl(),
-            ],
-            'users' => UserResource::collection($page)
-        ]);
+        } else {
+            $page = User::paginate($request->count);
+
+            return $this->returnUsers([
+                'page' => $page->currentPage(),
+                'total_pages' => $page->lastPage(),
+                'total_users' => $page->total(),
+                'count' => $page->count(),
+                'links' => [
+                    'next' => $page->nextPageUrl(),
+                    'prev' => $page->previousPageUrl(),
+                ],
+                'users' => UserResource::collection($page)
+            ]);
+        }
     }
 
     public function create(Request $request)
@@ -109,14 +120,28 @@ class UsersController extends Controller
             'name' => 'required|min:2|max:60',
             'email' => 'required|email:rfc',
             'phone' => 'required|regex:/(\+380)[0-9]{9}/',
-            'position_id' => 'required|model_exists:App\Models\Position',
-            'photo' => 'required|image|dimensions:min_width=70,min_height=70|file|size:5120',
+            'position_id' => ['required', new PositionCheck],
+            'photo' => 'required|image|mimetypes:image/jpeg,image/jpg|dimensions:min_width=70,min_height=70|max:5120',
         ]);
         if ($validator->fails()) {
             return $this->setFails($validator->messages())->return422();
         }
 
-        $user = User::create([$request->all()]);
+        // photo crop
+        $file = $request->file('photo');
+        $uri = 'storage/photos/' . time().'_'.$file->getClientOriginalName();
+
+        $source = Tinify::fromFile($file);
+        $resized = $source->resize(array(
+            "method" => "cover",
+            "width" => 70,
+            "height" => 70
+        ));
+        $resized->toFile($uri);
+        // create user
+        $user = User::create($request->all());
+        $user->photo = '/' . $uri;
+        $user->save();
         // del Token
         $token->delete();
 
@@ -124,7 +149,6 @@ class UsersController extends Controller
             'user_id' => $user->id,
             'message' => 'New user successfully registered'
         ]);
-
     }
 
     public function checkToken($header)

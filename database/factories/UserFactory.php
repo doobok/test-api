@@ -23,7 +23,6 @@ class UserFactory extends Factory
             'phone' => '+380' . $this->faker->randomNumber(9, true),
             'position_id' => $this->faker->numberBetween(1, 10),
             'photo' => $this->faker->imageUrl(70, 70, 'photo', true),
-            'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
         ];
     }
 
