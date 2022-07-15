@@ -14,3 +14,4 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::view('/', 'app');
+Route::get('callback', ['App\Http\Controllers\InfosController', 'save']);

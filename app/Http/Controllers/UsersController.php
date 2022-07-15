@@ -102,29 +102,29 @@ class UsersController extends Controller
         }
     }
 
-    public function create(Request $request)
+    public function create(UserCreateRequest $request)
     {
-        // check Token
-        $token = $this->checkToken($request->header('token'));
-        if (!$token) {
-            return $this->return401();
-        }
-        // check user Email Phone
-        $user = User::where('email', $request->email)->orWhere('phone', $request->phone)->first();
-        if (isset($user)) {
-            return $this->return409();
-        }
-
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|min:2|max:60',
-            'email' => 'required|email:rfc',
-            'phone' => 'required|regex:/(\+380)[0-9]{9}/',
-            'position_id' => ['required', new PositionCheck],
-            'photo' => 'required|image|mimetypes:image/jpeg,image/jpg|dimensions:min_width=70,min_height=70|max:5120',
-        ]);
-        if ($validator->fails()) {
-            return $this->setFails($validator->messages())->return422();
-        }
+//        // check Token
+//        $token = $this->checkToken($request->header('token'));
+//        if (!$token) {
+//            return $this->return401();
+//        }
+//        // check user Email Phone
+//        $user = User::where('email', $request->email)->orWhere('phone', $request->phone)->first();
+//        if (isset($user)) {
+//            return $this->return409();
+//        }
+//
+//        $validator = Validator::make($request->all(), [
+//            'name' => 'required|min:2|max:60',
+//            'email' => 'required|email:rfc',
+//            'phone' => 'required|regex:/(\+380)[0-9]{9}/',
+//            'position_id' => ['required', new PositionCheck],
+//            'photo' => 'required|image|mimetypes:image/jpeg,image/jpg|dimensions:min_width=70,min_height=70|max:5120',
+//        ]);
+//        if ($validator->fails()) {
+//            return $this->setFails($validator->messages())->return422();
+//        }
 
         // photo crop
         $file = $request->file('photo');
@@ -142,7 +142,7 @@ class UsersController extends Controller
         $user->photo = '/' . $uri;
         $user->save();
         // del Token
-        $token->delete();
+//        $token->delete();
 
         return $this->returnUsers([
             'user_id' => $user->id,
