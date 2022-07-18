@@ -10,7 +10,7 @@ class InfosController extends Controller
     public function save(Request $request)
     {
         Info::create([
-            'body' => $request->fullUrl()
+            'body' => $request->code
         ]);
 
         return response('success', 200);
