@@ -13,6 +13,8 @@ class InfosController extends Controller
             'body' => $request->code
         ]);
 
-        return response('success', 200);
+        return redirect('https://speroteck-f-dev-ed.lightning.force.com/lightning/n/Roi4Presenter');
+
+//        return response('success', 200);
     }
 }
